@@ -10,6 +10,7 @@ Game.prototype.init_io = function() {
   this.io.on('connection', function(socket) {
     socket.on('disconnect', function() { })
     console.log('bod_logger: a user connected')
+    io.emit('message', { message: 'test' })
   })
 }
 
