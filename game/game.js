@@ -7,10 +7,11 @@ var Game = function(io) {
 }
 
 Game.prototype.init_io = function() {
-  this.io.on('connection', function(socket) {
+  var io = this.io
+  io.on('connection', function(socket) {
     socket.on('disconnect', function() { })
     console.log('bod_logger: a user connected')
-    this.io.emit('message', JSON.stringify({ message: 'test' }))
+    io.emit('message', JSON.stringify({ message: 'test' }))
   })
 }
 
