@@ -1,16 +1,20 @@
-var Game = function (io) {
-  var $game = this
+var Game = function(io) {
+  this.io = io
 
-  this.init_io = function() {
-    io.on('connection', function(socket) {
-      socket.on('disconnect', function() { })
-      console.log('a user connected')
-    })
+  if (!(this instanceof Game)) {
+    return new Game(io)
   }
+}
 
-  this.start = function() {
+Game.prototype.init_io = function() {
+  this.io.on('connection', function(socket) {
+    socket.on('disconnect', function() { })
+    console.log('a user connected')
+  })
+}
 
-  }
+Game.prototype.start = function() {
+  this.init_io()
 }
 
 module.exports = Game

@@ -1,0 +1,16 @@
+{
+  "development": {
+    "username": "root",
+    "password": "",
+    "database": "bog_db",
+    "dialect" : "mysql",
+    "host": "localhost"
+  },
+  "production": {
+    "username": "bog_user",
+    "password": "rt56gh98",
+    "database": "bog_db",
+    "dialect" : "mysql",
+    "host": "localhost"
+  }
+}
