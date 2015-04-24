@@ -9,12 +9,13 @@ var Game = function(io) {
 Game.prototype.init_io = function() {
   this.io.on('connection', function(socket) {
     socket.on('disconnect', function() { })
-    console.log('a user connected')
+    console.log('bod_logger: a user connected')
   })
 }
 
 Game.prototype.start = function() {
   this.init_io()
+  console.log('bod_logger: game started')
 }
 
 module.exports = Game

@@ -1,16 +1,23 @@
 {
   "development": {
     "username": "root",
-    "password": "",
+    "password": null,
     "database": "bog_db",
-    "dialect" : "mysql",
-    "host": "localhost"
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "bog_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   },
   "production": {
     "username": "bog_user",
-    "password": "rt56gh98",
+    "password": "er56hg87",
     "database": "bog_db",
-    "dialect" : "mysql",
-    "host": "localhost"
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   }
 }

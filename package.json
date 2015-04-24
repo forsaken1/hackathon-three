@@ -15,7 +15,7 @@
 
     "jquery": "",
     "sequelize": "",
-    "sequelize-cli": "^1.7.0",
+    "sequelize-cli": "",
     "socket.io": "^1.3.3",
     "mysql": ""
   },
