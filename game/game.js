@@ -31,7 +31,7 @@ Battle.prototype.start = function() {
   this.logger('battle started')
   var io = this.io
 
-  io.emit('start', [first_player, second_player])
+  io.emit('start', { first_player: first_player, second_player: second_player })
 
   io.on('out', function(msg) {
 
