@@ -32,7 +32,8 @@ Player.prototype.defence = function() {
 }
 
 Player.prototype.defence_off = function() {
-  this.in_defence() && this.action = 'n'
+  if(this.in_defence())
+    this.action = 'n'
 }
 
 Player.prototype.in_defence = function() {
@@ -78,11 +79,13 @@ Player.prototype.to_json = function() {
 
 // Battle
 
-var Battle = function(io, first_player, second_player) {
+var Battle = function(io, socket, room_name, first_player, second_player) {
   if (!(this instanceof Battle)) {
-    return new Battle(io, first_player, second_player)
+    return new Battle(io, socket, room_name, first_player, second_player)
   }
   this.io = io
+  this.socket = socket
+  this.room_name = room_name
   this.first_player = first_player
   this.second_player = second_player
   this.loop_handler = null
@@ -119,52 +122,50 @@ Battle.prototype.to_json = function() {
 }
 
 Battle.prototype.start = function() {
-  this.logger('battle started')
   var io = this.io
   var $battle = this
   
-  io.emit('start', this.to_json())
+  io.sockets.in(this.room_name).emit('start', this.to_json())
 
   // Event Out
-  io.on('out', function(msg) {
-    this.logger('player out')
+  this.socket.on('out', function(msg) {
+    $battle.logger('player out')
     $battle.stopped_by_player($battle.find_by_id(msg.id))
   })
 
   // Event Attack
-  io.on('attack', function(msg) {
-    this.logger('player attack')
+  this.socket.on('attack', function(msg) {
+    $battle.logger('player attack')
 
-    var attacker = this.find_by_id(msg.id),
-        attacked = this.find_not_id(msg.id)
+    var attacker = $battle.find_by_id(msg.id),
+        attacked = $battle.find_not_id(msg.id)
 
     attacker.attack(attacked)
-    io.emit('tick', $battle.to_json())
+    io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
   })
 
-  // Event Start
-  io.on('defence_start', function(msg) {
-    this.logger('player defence start')
+  // Event Defence Start
+  this.socket.on('defence_start', function(msg) {
+    $battle.logger('player defence start')
 
-    var first_player = this.find_by_id(msg.id),
-        second_player = this.find_not_id(msg.id)
+    var first_player = $battle.find_by_id(msg.id)
 
     first_player.defence()
-    io.emit('tick', $battle.to_json())
+    io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
   })
 
-  // Event Stop
-  io.on('defence_stop', function(msg) {
-    this.logger('player defence stop')
+  // Event Defence Stop
+  this.socket.on('defence_stop', function(msg) {
+    $battle.logger('player defence stop')
 
-    var first_player = this.find_by_id(msg.id),
-        second_player = this.find_not_id(msg.id)
+    var first_player = $battle.find_by_id(msg.id)
 
     first_player.defence_off()
-    io.emit('tick', $battle.to_json())
+    io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
   })
 
   this.loop_handler = setInterval(this.loop, 1000 / TICK_PER_SECOND)
+  this.logger('battle started')
 }
 
 // Game
@@ -189,7 +190,7 @@ Game.prototype.init_io = function() {
       debug = this.debug,
       battles = this.battles
 
-  io.on('connection', function(socket) {
+  io.sockets.on('connection', function(socket) {
     logger('a user connected')
     var player = null
 
@@ -201,13 +202,12 @@ Game.prototype.init_io = function() {
 
     socket.on('play', function(msg) {
       logger('user wants to play')
-      logger(JSON.stringify(msg))
       player = new Player(msg)
       if(players.length > 0) {
         var first_player = players.pop(), second_player = player
         var room_name = first_player.id
         socket.join(room_name)
-        var battle = new Battle(io.to(room_name), first_player, second_player)
+        var battle = new Battle(io, socket, room_name, first_player, second_player)
         battles.push(battle)
         battle.start()
       }
@@ -215,7 +215,7 @@ Game.prototype.init_io = function() {
         logger('queue not full, player waiting...')
         players.push(player)
         socket.join(player.id)
-        io.to(player.id).emit('waiting')
+        io.sockets.to(player.id).emit('waiting')
       }
     })
   })
