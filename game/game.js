@@ -7,9 +7,22 @@ var Player = function(init) {
   this.id = init.id
   this.name = init.name
   this.character = init.character
+  this.damage = 20
+  this.mana_rate = 50
   this.health = 100
   this.mana = 100
   this.action = 'n'
+}
+
+Player.prototype.to_json = function() {
+  {
+    id: this.id,
+    name: this.name,
+    character: this.character,
+    health: this.health,
+    mana: this.mana,
+    action: this.action
+  }
 }
 
 // Battle
@@ -88,7 +101,7 @@ Game.prototype.init_io = function() {
         var room_name = first_player.id
         socket.join(room_name)
         var battle = new Battle(io.to(room_name), first_player, second_player)
-        io.to(player.id).emit('start', { first_player: first_player, second_player: second_player })
+        io.to(player.id).emit('start', { first_player: first_player.to_json, second_player: second_player.to_json })
         battles.push(battle)
         battle.start()
       }
