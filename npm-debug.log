@@ -1,0 +1,58 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node',
+1 verbose cli   '/usr/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   'https://github.com/LearnBoost/socket.io-client/zipball/master' ]
+2 info using npm@1.4.14
+3 info using node@v0.10.29
+4 verbose node symlink /usr/bin/node
+5 verbose readDependencies using package.json deps
+6 verbose cache add [ 'https://github.com/LearnBoost/socket.io-client/zipball/master',
+6 verbose cache add   null ]
+7 verbose cache add name=undefined spec="https://github.com/LearnBoost/socket.io-client/zipball/master" args=["https://github.com/LearnBoost/socket.io-client/zipball/master",null]
+8 verbose parsed url { protocol: 'https:',
+8 verbose parsed url   slashes: true,
+8 verbose parsed url   auth: null,
+8 verbose parsed url   host: 'github.com',
+8 verbose parsed url   port: null,
+8 verbose parsed url   hostname: 'github.com',
+8 verbose parsed url   hash: null,
+8 verbose parsed url   search: null,
+8 verbose parsed url   query: null,
+8 verbose parsed url   pathname: '/LearnBoost/socket.io-client/zipball/master',
+8 verbose parsed url   path: '/LearnBoost/socket.io-client/zipball/master',
+8 verbose parsed url   href: 'https://github.com/LearnBoost/socket.io-client/zipball/master' }
+9 silly lockFile edbf0a21--socket-io-client-zipball-master https://github.com/LearnBoost/socket.io-client/zipball/master
+10 verbose lock https://github.com/LearnBoost/socket.io-client/zipball/master /home/forsaken/.npm/edbf0a21--socket-io-client-zipball-master.lock
+11 verbose addRemoteTarball [ 'https://github.com/LearnBoost/socket.io-client/zipball/master',
+11 verbose addRemoteTarball   null ]
+12 info retry fetch attempt 1 at 12:57:49
+13 verbose fetch to= /home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+14 http GET https://github.com/LearnBoost/socket.io-client/zipball/master
+15 http 200 https://github.com/LearnBoost/socket.io-client/zipball/master
+16 verbose tar unpack /home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+17 silly lockFile 9d3dc218--io-client-zipball-master-unpack tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack
+18 verbose lock tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack /home/forsaken/.npm/9d3dc218--io-client-zipball-master-unpack.lock
+19 silly lockFile b1deb531--socket-io-client-zipball-master tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+20 verbose lock tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master /home/forsaken/.npm/b1deb531--socket-io-client-zipball-master.lock
+21 silly gunzTarPerm modes [ '755', '644' ]
+22 error not a package /home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+23 silly lockFile 9d3dc218--io-client-zipball-master-unpack tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack
+24 silly lockFile 9d3dc218--io-client-zipball-master-unpack tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack
+25 silly lockFile b1deb531--socket-io-client-zipball-master tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+26 silly lockFile b1deb531--socket-io-client-zipball-master tar:///home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master
+27 silly lockFile edbf0a21--socket-io-client-zipball-master https://github.com/LearnBoost/socket.io-client/zipball/master
+28 silly lockFile edbf0a21--socket-io-client-zipball-master https://github.com/LearnBoost/socket.io-client/zipball/master
+29 error Error: ENOENT, open '/home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack/package.json'
+30 error If you need help, you may report this *entire* log,
+30 error including the npm and node versions, at:
+30 error     <http://github.com/npm/npm/issues>
+31 error System Linux 3.11.0-26-generic
+32 error command "/usr/bin/node" "/usr/bin/npm" "install" "https://github.com/LearnBoost/socket.io-client/zipball/master"
+33 error cwd /home/forsaken/www/hackathon_three
+34 error node -v v0.10.29
+35 error npm -v 1.4.14
+36 error path /home/forsaken/tmp/npm-20144-Jm1e0eD6/github.com/LearnBoost/socket.io-client/zipball/master-unpack/package.json
+37 error code ENOENT
+38 error errno 34
+39 verbose exit [ 34, true ]
