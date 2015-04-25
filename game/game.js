@@ -57,11 +57,10 @@ var Game = function(io) {
   this.io = io
   this.players = []
   this.battles = []
-  this.debug_mode = true
 }
 
 Game.prototype.logger = function(message) {
-  this.debug_mode && console.log('game logger: ' + message)
+  console.log('game logger: ' + message)
 }
 
 Game.prototype.init_io = function() {
@@ -73,13 +72,17 @@ Game.prototype.init_io = function() {
 
   io.on('connection', function(socket) {
     logger('a user connected')
+    var player = null
 
-    socket.on('disconnect', function() { logger('user disconnected') })
+    socket.on('disconnect', function() {
+      logger('user disconnected')
+      remove(players, player)
+    })
 
     socket.on('play', function(msg) {
       logger('user wants to play')
-      logger(msg)
-      var player = new Player(msg)
+      logger(JSON.stringify(msg))
+      player = new Player(msg)
       if(players.length > 0) {
         var first_player = players.pop(), second_player = player
         var room_name = first_player.id
@@ -105,3 +108,11 @@ Game.prototype.start = function() {
 }
 
 module.exports = Game
+
+function remove(arr, item) {
+  for(var i = arr.length; i--;) {
+    if(arr[i] === item) {
+      arr.splice(i, 1);
+    }
+  }
+}
