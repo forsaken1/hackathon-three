@@ -4,6 +4,7 @@ var TICK_PER_SECOND   = 30,
     DEFAULT_MANA      = {'z': 100, 'a': 100, 'p': 100} // количество единиц маны
     DEFAULT_DAMAGE    = {'z': 20,  'a': 20,  'p': 20}  // урон врагу
     DEFAULT_MANA_RATE = {'z': 50,  'a': 50,  'p': 50}  // отребление маны за атаку
+    DEFAULT_DAMAGE_DEFENCE = {'z': 0.5, 'a': 0.5,  'p': 0.5} // коэффициент урона для персонажа в состоянии защиты
 
 
 // Player
@@ -23,16 +24,45 @@ var Player = function(init) {
   this.mana = this.mana_max
   this.action = 'n'
   this.battle = null
+  this.attack_timer = 0
+}
+
+Player.prototype.defence = function() {
+  this.action = 'd'
+}
+
+Player.prototype.defence_off = function() {
+  this.in_defence() && this.action = 'n'
+}
+
+Player.prototype.in_defence = function() {
+  return this.action == 'd'
+}
+
+Player.prototype.calc_damage_coeff = function() {
+  return this.in_defence() ? DEFAULT_DAMAGE_DEFENCE[this.character] : 1
+}
+
+Player.prototype.attack = function(player) {
+  this.attack_timer = 10
+  this.mana -= DEFAULT_MANA_RATE[this.character]
+  player.health -= DEFAULT_DAMAGE[this.character] * player.calc_damage_coeff()
 }
 
 Player.prototype.stop_battle = function() {
   if(this.battle) {
-    this.battle.stopped_by_user(this)
+    this.battle.stopped_by_player(this)
   }
 }
 
 Player.prototype.tick = function() {
   this.mana < DEFAULT_MANA ? this.mana += MANA_PER_TICK : this.mana = DEFAULT_MANA
+  if(this.attack_timer) {
+    this.attack_timer--
+    this.action = 'a'
+  }
+  else
+    this.action = 'n'
 }
 
 Player.prototype.to_json = function() {
@@ -70,9 +100,9 @@ Battle.prototype.stop = function() {
   clearInterval(this.loop_handler)
 }
 
-Battle.prototype.stopped_by_user = function(fooled_user) {
+Battle.prototype.stopped_by_player = function(fooled_player) {
   this.stop()
-  this.io.emit('end', { id: this.find_not_id(fooled_user.id).id })
+  this.io.emit('end', { id: this.find_not_id(fooled_player.id).id })
 }
 
 Battle.prototype.logger = function(message) {
@@ -84,25 +114,54 @@ Battle.prototype.loop = function() {
   this.second_player && this.second_player.tick()
 }
 
+Battle.prototype.to_json = function() {
+  return { first_player: this.first_player.to_json(), second_player: this.second_player.to_json() }
+}
+
 Battle.prototype.start = function() {
   this.logger('battle started')
   var io = this.io
   var $battle = this
+  
+  io.emit('start', this.to_json())
 
+  // Event Out
   io.on('out', function(msg) {
-    $battle.stopped_by_user($battle.find_by_id(msg.id))
+    this.logger('player out')
+    $battle.stopped_by_player($battle.find_by_id(msg.id))
   })
 
+  // Event Attack
   io.on('attack', function(msg) {
+    this.logger('player attack')
 
+    var attacker = this.find_by_id(msg.id),
+        attacked = this.find_not_id(msg.id)
+
+    attacker.attack(attacked)
+    io.emit('tick', $battle.to_json())
   })
 
+  // Event Start
   io.on('defence_start', function(msg) {
+    this.logger('player defence start')
 
+    var first_player = this.find_by_id(msg.id),
+        second_player = this.find_not_id(msg.id)
+
+    first_player.defence()
+    io.emit('tick', $battle.to_json())
   })
 
+  // Event Stop
   io.on('defence_stop', function(msg) {
+    this.logger('player defence stop')
 
+    var first_player = this.find_by_id(msg.id),
+        second_player = this.find_not_id(msg.id)
+
+    first_player.defence_off()
+    io.emit('tick', $battle.to_json())
   })
 
   this.loop_handler = setInterval(this.loop, 1000 / TICK_PER_SECOND)
@@ -149,7 +208,6 @@ Game.prototype.init_io = function() {
         var room_name = first_player.id
         socket.join(room_name)
         var battle = new Battle(io.to(room_name), first_player, second_player)
-        io.to(room_name).emit('start', { first_player: first_player.to_json(), second_player: second_player.to_json() })
         battles.push(battle)
         battle.start()
       }
