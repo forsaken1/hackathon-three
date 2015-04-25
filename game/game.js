@@ -1,5 +1,6 @@
 var TICK_PER_SECOND   = 30,
     MANA_PER_TICK     = 1,
+    ATTACK_RATE       = 40,
     DEFAULT_HEALTH    = {'z': 100, 'a': 100, 'p': 100} // количество единиц здоровья
     DEFAULT_MANA      = {'z': 100, 'a': 100, 'p': 100} // количество единиц маны
     DEFAULT_DAMAGE    = {'z': 20,  'a': 20,  'p': 20}  // урон врагу
@@ -44,10 +45,16 @@ Player.prototype.calc_damage_coeff = function() {
   return this.in_defence() ? DEFAULT_DAMAGE_DEFENCE[this.character] : 1
 }
 
+Player.prototype.can_attack = function() {
+  return this.mana >= DEFAULT_MANA_RATE[this.character] && this.attack_timer == 0
+}
+
 Player.prototype.attack = function(player) {
-  this.attack_timer = 10
-  this.mana -= DEFAULT_MANA_RATE[this.character]
-  player.health -= DEFAULT_DAMAGE[this.character] * player.calc_damage_coeff()
+  if(this.can_attack()) {
+    this.attack_timer = ATTACK_RATE
+    this.mana -= DEFAULT_MANA_RATE[this.character]
+    player.health -= DEFAULT_DAMAGE[this.character] * player.calc_damage_coeff()
+  }
 }
 
 Player.prototype.stop_battle = function() {

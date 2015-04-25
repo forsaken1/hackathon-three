@@ -11,7 +11,7 @@ var player1 = function() { return { id: 'id' + Math.random(), name: 'Alexey', ch
 var player2 = function() { return { id: 'id' + Math.random(), name: 'Andrey', character: 'a' } }
 
 describe("game logic", function() {
-  /*it('should connect to game', function(done) {
+  it('should connect to game', function(done) {
     var client1 = io.connect(socketURL, options)
     client1.on('connect', function() {
       client1.connected.should.equal(true)
@@ -118,7 +118,7 @@ describe("game logic", function() {
         })
       })
     })
-  })*/
+  })
 
   it('should send tick after start game and first user attack', function(done) {
     var client1 = io.connect(socketURL, options)
