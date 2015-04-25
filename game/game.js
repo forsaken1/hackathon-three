@@ -31,8 +31,6 @@ Battle.prototype.start = function() {
   this.logger('battle started')
   var io = this.io
 
-  io.emit('start', { first_player: first_player, second_player: second_player })
-
   io.on('out', function(msg) {
 
   })
@@ -83,17 +81,19 @@ Game.prototype.init_io = function() {
       logger(msg)
       var player = new Player(msg)
       if(players.length > 0) {
-      	var first_player = players.pop(), second_player = player
-      	var room_name = first_player.id
-      	socket.join(room_name)
-      	var battle = new Battle(io.to(room_name), first_player, second_player)
-      	battles.push(battle)
-      	battle.start()
+        var first_player = players.pop(), second_player = player
+        var room_name = first_player.id
+        socket.join(room_name)
+        var battle = new Battle(io.to(room_name), first_player, second_player)
+        io.to(player.id).emit('start', { first_player: first_player, second_player: second_player })
+        battles.push(battle)
+        battle.start()
       }
       else {
-      	logger('queue not full, player waiting...')
-      	socket.join(player.id)
-      	io.to(player.id).emit('waiting')
+        logger('queue not full, player waiting...')
+        players.push(player)
+        socket.join(player.id)
+        io.to(player.id).emit('waiting')
       }
     })
   })
