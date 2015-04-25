@@ -58,13 +58,21 @@ var Battle = function(io, first_player, second_player) {
   this.loop_handler = null
 }
 
+Battle.prototype.find_by_id = function(id) {
+  return this.first_player.id == id ? this.first_player : this.second_player
+}
+
+Battle.prototype.find_not_id = function(id) {
+  return this.first_player.id == id ? this.second_player : this.first_player
+}
+
 Battle.prototype.stop = function() {
   clearInterval(this.loop_handler)
 }
 
 Battle.prototype.stopped_by_user = function(fooled_user) {
   this.stop()
-  this.io.emit('end', { id: fooled_user.id == first_player.id ? second_player.id : first_player.id })
+  this.io.emit('end', { id: this.find_not_id(fooled_user.id).id })
 }
 
 Battle.prototype.logger = function(message) {
@@ -82,7 +90,7 @@ Battle.prototype.start = function() {
   var $battle = this
 
   io.on('out', function(msg) {
-    $battle.stopped_by_user(msg.id == first_player.id ? first_player : second_player)
+    $battle.stopped_by_user($battle.find_by_id(msg.id))
   })
 
   io.on('attack', function(msg) {

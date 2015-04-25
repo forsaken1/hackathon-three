@@ -130,8 +130,8 @@ describe("game logic", function() {
             client1.on('tick', function(msg) {
               msg[p1.id].id.should.equal(p1.id)
               msg[p1.id].name.should.equal('Alexey')
-              msg[p1.id].mana.should.notEqual(100)
-              msg[p2.id].health.should.notEqual(100)
+              msg[p1.id].mana.should.be.below(100)
+              msg[p2.id].health.should.be.below(100)
               client1.disconnect()
               client2.disconnect()
               done()
