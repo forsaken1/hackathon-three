@@ -1,6 +1,6 @@
 var TICK_PER_SECOND   = 30,
     MANA_PER_TICK     = 1,
-    ATTACK_RATE       = 40,
+    ATTACK_RATE       = 1,
     DEFAULT_HEALTH    = {'z': 100, 'a': 100, 'p': 100} // количество единиц здоровья
     DEFAULT_MANA      = {'z': 100, 'a': 100, 'p': 100} // количество единиц маны
     DEFAULT_DAMAGE    = {'z': 20,  'a': 20,  'p': 20}  // урон врагу
@@ -80,7 +80,8 @@ Player.prototype.tick = function() {
     this.action = 'a'
   }
   else {
-    this.action = 'n'
+    if(!this.in_defence())
+      this.action = 'n'
   }
 }
 
@@ -139,13 +140,13 @@ Battle.prototype.logger = function(message) {
 Battle.prototype.loop = function() {
   if(this.first_player) {
     if(this.first_player.is_dead()) {
-      this.stopped_by_player(first_player)
+      this.stopped_by_player(this.first_player)
     }
     this.first_player.tick()
   }
   if(this.second_player) {
     if(this.second_player.is_dead()) {
-      this.stopped_by_player(second_player)
+      this.stopped_by_player(this.second_player)
     }
     this.second_player.tick()
   }

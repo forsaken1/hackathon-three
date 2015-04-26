@@ -133,7 +133,6 @@ describe("game logic", function() {
           var p2 = player2()
           client2.emit('play', p2)
           client1.on('start', function() {
-            console.log('start')
             client1.emit('attack', { id: p1.id })
             client1.on('tick', function(msg) {
               msg.first_player.id.should.equal(p1.id)
