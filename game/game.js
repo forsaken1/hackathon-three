@@ -28,6 +28,10 @@ var Player = function(init) {
   this.attack_timer = 0
 }
 
+Player.prototype.is_dead = function() {
+  return this.health < 1
+}
+
 Player.prototype.defence = function() {
   this.action = 'd'
 }
@@ -96,6 +100,9 @@ var Battle = function(io, socket, room_name, first_player, second_player) {
   this.first_player = first_player
   this.second_player = second_player
   this.loop_handler = null
+
+  first_player.battle = this
+  second_player.battle = this
 }
 
 Battle.prototype.find_by_id = function(id) {
@@ -120,8 +127,18 @@ Battle.prototype.logger = function(message) {
 }
 
 Battle.prototype.loop = function() {
-  this.first_player && this.first_player.tick()
-  this.second_player && this.second_player.tick()
+  if(this.first_player) {
+    if(this.first_player.is_dead()) {
+      this.io.emit('end', { id: this.second_player.id })
+    }
+    this.first_player.tick()
+  }
+  if(this.second_player) {
+    if(this.second_player.is_dead()) {
+      this.io.emit('end', { id: this.first_player.id })
+    }
+    this.second_player.tick()
+  }
 }
 
 Battle.prototype.to_json = function() {
