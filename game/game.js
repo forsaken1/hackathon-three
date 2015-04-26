@@ -287,5 +287,5 @@ function remove(arr, item) {
 }
 
 function to_persent(cur, max) {
-  return parseInt(max / 100 * cur)
+  return parseInt(100 / max * cur)
 }
