@@ -127,7 +127,7 @@ Battle.prototype.stop = function() {
 Battle.prototype.stopped_by_player = function(fooled_player) {
   this.stop()
   var json = { id: this.find_not_id(fooled_player.id).id }
-  this.io.emit('end', json)
+  this.io.sockets.in(this.room_name).emit('end', json)
   this.logger('end battle, sended: ' + JSON.stringify(json))
   this.first_player.socket.leave(this.first_player.id)
   this.second_player.socket.leave(this.first_player.id)
