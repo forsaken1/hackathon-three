@@ -132,14 +132,17 @@ describe("game logic", function() {
         client2.on('connect', function() {
           var p2 = player2()
           client2.emit('play', p2)
-          client2.on('start', function(msg) {
+          client1.on('start', function() {
             console.log('start')
             client1.emit('attack', { id: p1.id })
             client1.on('tick', function(msg) {
               msg.first_player.id.should.equal(p1.id)
               msg.first_player.name.should.equal('Alexey')
               msg.first_player.mana.should.be.below(100)
+              msg.first_player.health.should.equal(100)
               msg.second_player.health.should.be.below(100)
+              msg.second_player.name.should.equal('Andrey')
+              msg.second_player.mana.should.equal(100)
               client1.disconnect()
               client2.disconnect()
               done()

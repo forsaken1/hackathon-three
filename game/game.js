@@ -10,7 +10,7 @@ var TICK_PER_SECOND   = 30,
 
 // Player
 
-var Player = function(init) {
+var Player = function(init, socket) {
   if (!(this instanceof Player)) {
     return new Player(init)
   }
@@ -26,6 +26,7 @@ var Player = function(init) {
   this.action = 'n'
   this.battle = null
   this.attack_timer = 0
+  this.socket = socket
 }
 
 Player.prototype.is_dead = function() {
@@ -54,10 +55,15 @@ Player.prototype.can_attack = function() {
 }
 
 Player.prototype.attack = function(player) {
+  console.log('Player attack started')
   if(this.can_attack()) {
+    console.log('Player can attack')
+    this.action = 'a'
     this.attack_timer = ATTACK_RATE
     this.mana -= DEFAULT_MANA_RATE[this.character]
     player.health -= DEFAULT_DAMAGE[this.character] * player.calc_damage_coeff()
+    console.log('Player after attack log: ' + JSON.stringify(this.to_json()))
+    console.log('Enemy player after attack log: ' + JSON.stringify(player.to_json()))
   }
 }
 
@@ -68,13 +74,14 @@ Player.prototype.stop_battle = function() {
 }
 
 Player.prototype.tick = function() {
-  this.mana < DEFAULT_MANA ? this.mana += MANA_PER_TICK : this.mana = DEFAULT_MANA
-  if(this.attack_timer) {
+  this.mana < DEFAULT_MANA[this.character] ? this.mana += MANA_PER_TICK : this.mana = DEFAULT_MANA[this.character]
+  if(this.attack_timer > 0) {
     this.attack_timer--
     this.action = 'a'
   }
-  else
+  else {
     this.action = 'n'
+  }
 }
 
 Player.prototype.to_json = function() {
@@ -90,19 +97,18 @@ Player.prototype.to_json = function() {
 
 // Battle
 
-var Battle = function(io, socket, room_name, first_player, second_player) {
+var Battle = function(io, room_name, first_player, second_player) {
   if (!(this instanceof Battle)) {
-    return new Battle(io, socket, room_name, first_player, second_player)
+    return new Battle(io, room_name, first_player, second_player)
   }
   this.io = io
-  this.socket = socket
   this.room_name = room_name
   this.first_player = first_player
   this.second_player = second_player
   this.loop_handler = null
 
-  first_player.battle = this
-  second_player.battle = this
+  this.first_player.battle = this
+  this.second_player.battle = this
 }
 
 Battle.prototype.find_by_id = function(id) {
@@ -119,7 +125,11 @@ Battle.prototype.stop = function() {
 
 Battle.prototype.stopped_by_player = function(fooled_player) {
   this.stop()
-  this.io.emit('end', { id: this.find_not_id(fooled_player.id).id })
+  var json = { id: this.find_not_id(fooled_player.id).id }
+  this.io.emit('end', json)
+  this.logger('end battle, sended: ' + JSON.stringify(json))
+  this.first_player.socket.leave(this.first_player.id)
+  this.second_player.socket.leave(this.first_player.id)
 }
 
 Battle.prototype.logger = function(message) {
@@ -129,16 +139,17 @@ Battle.prototype.logger = function(message) {
 Battle.prototype.loop = function() {
   if(this.first_player) {
     if(this.first_player.is_dead()) {
-      this.io.emit('end', { id: this.second_player.id })
+      this.stopped_by_player(first_player)
     }
     this.first_player.tick()
   }
   if(this.second_player) {
     if(this.second_player.is_dead()) {
-      this.io.emit('end', { id: this.first_player.id })
+      this.stopped_by_player(second_player)
     }
     this.second_player.tick()
   }
+  this.io.sockets.in(this.room_name).emit('tick', this.to_json())
 }
 
 Battle.prototype.to_json = function() {
@@ -146,19 +157,20 @@ Battle.prototype.to_json = function() {
 }
 
 Battle.prototype.start = function() {
-  var io = this.io
-  var $battle = this
+  var io = this.io, $battle = this
   
   io.sockets.in(this.room_name).emit('start', this.to_json())
 
   // Event Out
-  this.socket.on('out', function(msg) {
+  var out_function = function(msg) {
     $battle.logger('player out')
     $battle.stopped_by_player($battle.find_by_id(msg.id))
-  })
+  }
+  this.first_player.socket.on('out', out_function)
+  this.second_player.socket.on('out', out_function)
 
   // Event Attack
-  this.socket.on('attack', function(msg) {
+  var attack_function = function(msg) {
     $battle.logger('player attack')
 
     var attacker = $battle.find_by_id(msg.id),
@@ -166,29 +178,38 @@ Battle.prototype.start = function() {
 
     attacker.attack(attacked)
     io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
-  })
+    $battle.logger('send ' + JSON.stringify($battle.to_json()))
+  }
+  this.first_player.socket.on('attack', attack_function)
+  this.second_player.socket.on('attack', attack_function)
 
   // Event Defence Start
-  this.socket.on('defence_start', function(msg) {
+  var defence_start_function = function(msg) {
     $battle.logger('player defence start')
 
-    var first_player = $battle.find_by_id(msg.id)
+    var player = $battle.find_by_id(msg.id)
 
-    first_player.defence()
+    player.defence()
     io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
-  })
+    $battle.logger('send ' + JSON.stringify($battle.to_json()))
+  }
+  this.first_player.socket.on('defence_start', defence_start_function)
+  this.second_player.socket.on('defence_start', defence_start_function)
 
   // Event Defence Stop
-  this.socket.on('defence_stop', function(msg) {
+  var defence_stop_function = function(msg) {
     $battle.logger('player defence stop')
 
-    var first_player = $battle.find_by_id(msg.id)
+    var player = $battle.find_by_id(msg.id)
 
-    first_player.defence_off()
+    player.defence_off()
     io.sockets.in($battle.room_name).emit('tick', $battle.to_json())
-  })
+    $battle.logger('send ' + JSON.stringify($battle.to_json()))
+  }
+  this.first_player.socket.on('defence_stop', defence_stop_function)
+  this.second_player.socket.on('defence_stop', defence_stop_function)
 
-  this.loop_handler = setInterval(this.loop, 1000 / TICK_PER_SECOND)
+  this.loop_handler = setInterval(function() { $battle.loop() }, 1000 / TICK_PER_SECOND)
   this.logger('battle started')
 }
 
@@ -220,18 +241,20 @@ Game.prototype.init_io = function() {
 
     socket.on('disconnect', function() {
       logger('user disconnected')
-      player.stop_battle()
-      remove(players, player)
+      if(player) {
+        player.stop_battle()
+        remove(players, player)
+      }
     })
 
     socket.on('play', function(msg) {
       logger('user wants to play')
-      player = new Player(msg)
+      player = new Player(msg, socket)
       if(players.length > 0) {
         var first_player = players.pop(), second_player = player
         var room_name = first_player.id
         socket.join(room_name)
-        var battle = new Battle(io, socket, room_name, first_player, second_player)
+        var battle = new Battle(io, room_name, first_player, second_player)
         battles.push(battle)
         battle.start()
       }
